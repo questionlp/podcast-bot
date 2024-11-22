@@ -6,23 +6,36 @@
 """Podcast Feed Bot."""
 import datetime
 import logging
-import sys
 from argparse import Namespace
 from pprint import pformat
 from typing import Any
 
-from html2text import HTML2Text
-from jinja2 import Environment, FileSystemLoader, Template, select_autoescape
-
-from clients.bluesky import BlueskyClient
-from clients.mastodon import MastodonClient
-from command import AppCommand
-from config import AppConfig, AppEnvironment, FeedSettings
-from db import FeedDatabase
-from feed import PodcastFeed
+import modules.command
+from modules.bluesky_client import BlueskyClient
+from modules.database import FeedDatabase
+from modules.formatting import format_bluesky_post, format_mastodon_post
+from modules.mastodon_client import MastodonClient
+from modules.podcast_feed import PodcastFeed
+from modules.settings import AppConfig, AppSettings, FeedSettings
 
 APP_VERSION: str = "1.0.0-alpha"
 logger: logging.Logger = logging.getLogger(__name__)
+
+
+def configure_logging(log_file: str = "logs/app.log", debug: bool = False) -> logging.FileHandler:
+    """Configure application logging."""
+    log_handler: logging.FileHandler = logging.FileHandler(log_file)
+    log_format: logging.Formatter = logging.Formatter(
+        fmt="%(asctime)s %(levelname)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+    )
+    log_handler.setFormatter(log_format)
+    if debug:
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
+
+    logger.addHandler(log_handler)
+    return log_handler
 
 
 def retrieve_new_episodes(
@@ -95,90 +108,13 @@ def retrieve_new_episodes(
     return episodes
 
 
-def unsmart_quotes(text: str) -> str:
-    """Replaces "smart" quotes with normal quotes."""
-    text: str = text.replace("’", "'")
-    text = text.replace("”", '"')
-    text = text.replace("“", '"')
-    return text
-
-
-def format_post(
-    episode: dict[str, Any],
-    podcast_name: str = None,
-    max_description_length: int = 275,
-    template_path: str = "templates",
-    template_file: str = "post.txt.jinja",
-) -> str:
-    """Returns a formatted post with episode information."""
-    formatter: HTML2Text = HTML2Text()
-    formatter.ignore_emphasis = True
-    formatter.ignore_images = True
-    formatter.ignore_links = True
-    formatter.ignore_tables = True
-    formatter.body_width = 0
-
-    env: Environment = Environment(
-        loader=FileSystemLoader(template_path),
-        autoescape=select_autoescape(),
-        trim_blocks=True,
-        lstrip_blocks=True,
-    )
-    template: Template = env.get_template(template_file)
-
-    # Replace "smart" quotes with regular quotes
-    title: str = unsmart_quotes(text=episode["title"])
-    description: str = unsmart_quotes(text=episode["description"])
-    formatted_description: str = formatter.handle(description)
-
-    # Fix issue with HTML2Text causing + to be rendered as \+
-    formatted_description = formatted_description.replace(r"\+", "+")
-
-    if len(formatted_description) > max_description_length:
-        formatted_description = f"{formatted_description[:max_description_length].strip()}...\n"
-    else:
-        formatted_description = f"{formatted_description.strip()}\n"
-
-    return template.render(
-        podcast_name=podcast_name,
-        title=title,
-        description=formatted_description,
-        url=episode["url"],
-    )
-
-
-def main() -> None:
-    """Fetch podcast episodes and post new episodes."""
-    arguments: Namespace = AppCommand().parse()
-    if arguments.version:
-        print(f"Version {APP_VERSION}")
-        return
-
-    if arguments.multiple_feeds:
-        feeds: list[FeedSettings] = AppConfig().parse()
-    else:
-        feeds: list[FeedSettings] = AppEnvironment().parse()
-
-    if not feeds or not isinstance(feeds, list):
-        print("ERROR: No podcast feed(s) defined.")
-        sys.exit(1)
-
-    dry_run: bool = arguments.dry_run
-
+def process_feeds(
+    feeds: FeedSettings,
+    feed_database: FeedDatabase,
+    dry_run: bool = False,
+):
+    """Process podcast feeds and post new episodes."""
     for feed in feeds:
-        if feed.log_file:
-            log_handler: logging.FileHandler = logging.FileHandler(feed.log_file)
-            log_format: logging.Formatter = logging.Formatter(
-                fmt="%(asctime)s %(levelname)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
-            )
-            log_handler.setFormatter(log_format)
-            if arguments.debug:
-                logger.setLevel(logging.DEBUG)
-            else:
-                logger.setLevel(logging.INFO)
-
-            logger.addHandler(log_handler)
-
         logger.debug("Starting")
         if dry_run:
             logger.debug("Running in dry mode.")
@@ -189,10 +125,6 @@ def main() -> None:
             logger.debug("Feed disabled. Skipping.")
             continue
 
-        # Check to see if the feed database file exists. Create file if
-        # the file does not exist
-        feed_database: FeedDatabase = FeedDatabase(feed.database_file)
-
         # Pull episodes from the configured podcast feed
         podcast: PodcastFeed = PodcastFeed()
 
@@ -200,9 +132,13 @@ def main() -> None:
 
         # Check to see if the podcast feed has been updated since the
         # last run. Only process the feed of the feed has been updated.
-        _now = datetime.datetime.now(datetime.timezone.utc)
-        previous_last_modified = feed_database.get_last_modified(feed_name=feed.name)
-        current_last_modified = podcast.last_modified(feed_url=feed.feed_url)
+        _now: datetime.datetime = datetime.datetime.now(datetime.timezone.utc)
+        previous_last_modified: datetime.datetime | None = feed_database.get_last_modified(
+            feed_name=feed.name
+        )
+        current_last_modified: datetime.datetime | None = podcast.last_modified(
+            feed_url=feed.feed_url
+        )
 
         logger.debug(
             "Previous Last Modified: %s",
@@ -220,20 +156,32 @@ def main() -> None:
             user_agent=feed.user_agent,
         )
 
-        # Connect to Mastodon Client
-        logger.debug("Mastodon URL: %s", feed.mastodon_api_base_url)
-        if feed.mastodon_use_secrets_file:
-            mastodon_client: MastodonClient = MastodonClient(
-                api_url=feed.mastodon_api_base_url,
-                client_secret=None,
-                access_token=feed.mastodon_secrets_file,
+        bluesky_client: BlueskyClient | None = None
+        if feed.bluesky_settings:
+            # Setup Bluesky Client
+            logger.debug("Bluesky API URL: %s", feed.bluesky_settings.api_url)
+            bluesky_client = BlueskyClient(
+                api_url=feed.bluesky_settings.api_url,
+                username=feed.bluesky_settings.username,
+                app_password=feed.bluesky_settings.app_password,
             )
-        else:
-            mastodon_client: MastodonClient = MastodonClient(
-                api_url=feed.mastodon_api_base_url,
-                client_secret=feed.mastodon_client_secret,
-                access_token=feed.mastodon_access_token,
-            )
+
+        mastodon_client: MastodonClient | None = None
+        if feed.mastodon_settings:
+            # Connect to Mastodon Client
+            logger.debug("Mastodon API URL: %s", feed.mastodon_settings.api_url)
+            if feed.mastodon_settings.use_oauth:
+                mastodon_client = MastodonClient(
+                    api_url=feed.mastodon_settings.api_url,
+                    client_secret=None,
+                    access_token=feed.mastodon_settings.secrets_file,
+                )
+            else:
+                mastodon_client = MastodonClient(
+                    api_url=feed.mastodon_settings.api_url,
+                    client_secret=feed.mastodon_settings.client_secret,
+                    access_token=feed.mastodon_settings.access_token,
+                )
 
         if episodes:
             new_episodes: list[dict[str, Any]] = retrieve_new_episodes(
@@ -249,25 +197,68 @@ def main() -> None:
             logger.debug("New Episodes:\n%s", pformat(new_episodes))
 
             for episode in new_episodes:
-                episode["title"] = unsmart_quotes(text=episode["title"])
-                post_text: str = format_post(
-                    podcast_name=feed.podcast_name,
-                    episode=episode,
-                    max_description_length=feed.max_description_length,
-                    template_path=feed.template_directory,
-                    template_file=feed.template_file,
-                )
-                if not dry_run:
-                    logger.info("Posting %s.", episode)
-                    mastodon_client.post(content=post_text)
+                if bluesky_client:
+                    post_text: str = format_bluesky_post(
+                        podcast_name=feed.name,
+                        episode=episode,
+                        max_description_length=feed.bluesky_settings.max_description_length,
+                        template_path=feed.bluesky_settings.template_path,
+                        template_file=feed.bluesky_settings.template_file,
+                    )
 
-        if not dry_run or not arguments.skip_clean:
+                    if not dry_run:
+                        logger.info("Posting %s.", episode)
+                        bluesky_client.post(body=post_text, episode_url=episode["url"])
+
+                if mastodon_client:
+                    post_text: str = format_mastodon_post(
+                        podcast_name=feed.podcast_name,
+                        episode=episode,
+                        max_description_length=feed.max_description_length,
+                        template_path=feed.template_directory,
+                        template_file=feed.template_file,
+                    )
+
+                    if not dry_run:
+                        logger.info("Posting %s.", episode)
+                        mastodon_client.post(content=post_text)
+
+        if not dry_run:
             feed_database.upsert_last_modified(feed_name=feed.name, last_modified=_now)
-            feed_database.clean(days_to_keep=feed.database_clean_days)
 
-        logger.debug("Finished")
-        log_handler.close()
-        logger.removeHandler(log_handler)
+
+def main() -> None:
+    """Fetch podcast episodes and post new episodes."""
+    arguments: Namespace = modules.command.parse()
+
+    if arguments.version:
+        print(f"Version {APP_VERSION}")
+        return
+
+    dry_run: bool = arguments.dry_run
+
+    app_config = AppConfig()
+    app_settings: AppSettings = app_config.parse_app(settings_file=arguments.settings)
+
+    log_handler: logging.FileHandler = configure_logging(
+        app_settings.log_file, debug=arguments.debug
+    )
+
+    # Check to see if the feed database file exists. Create file if
+    # the file does not exist
+    feed_database: FeedDatabase = FeedDatabase(app_settings.database_file)
+
+    process_feeds(
+        feeds=app_settings.feeds,
+        feed_database=feed_database,
+        dry_run=dry_run,
+    )
+
+    if not dry_run and not arguments.skip_clean:
+        feed_database.clean(days_to_keep=app_settings.database_clean_days)
+
+    log_handler.close()
+    logger.removeHandler(log_handler)
 
 
 if __name__ == "__main__":

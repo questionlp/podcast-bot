@@ -1,23 +1,33 @@
-[
-    {
-        "name": "",
-        "enabled": true,
-        "database_file": "feed_info.sqlite3",
-        "database_clean_days": 90,
-        "recent_days": 5,
-        "max_episodes": 50,
-        "log_file": "logs/podcast_bot.log",
-        "max_description_length": 275,
-        "podcast_feed_url": "",
-        "short_name": "",
-        "podcast_guid_filter": null,
-        "mastodon_use_secrets_file": true,
-        "mastodon_secret": "",
-        "mastodon_client_secret": "",
-        "mastodon_access_token": "",
-        "mastodon_api_base_url": "",
-        "user_agent": "Mozilla/5.0 (Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0",
-        "template_directory": "templates",
-        "template_file": "post.txt.jinja"
-    }
-]
+{
+    "database_file": "dbfiles/feed_info.sqlite3",
+    "database_clean_days": 90,
+    "log_file": "logs/app.log",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64; rv:130.0) Gecko/20100101 Firefox/130.0",
+    "feeds": [
+        {
+            "name": "",
+            "short_name": "",
+            "feed_url": "",
+            "enabled": true,
+            "recent_days": 5,
+            "max_episodes": 20,
+            "guid_filter": "",
+            "bluesky_settings": {
+                "username": "",
+                "app_password": "",
+                "api_url": "https://bsky.social",
+                "template_file": "templates/post-bluesky.txt.jinja",
+                "max_description_length": 150
+            },
+            "mastodon_settings": {
+                "api_url": "",
+                "use_oauth": false,
+                "secrets_file": "",
+                "client_secret": "",
+                "access_token": "",
+                "template_file": "templates/post-mastodon.txt.jinja",
+                "max_description_length": 250
+            }
+        }
+    ]
+}
