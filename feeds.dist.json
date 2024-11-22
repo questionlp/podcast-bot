@@ -16,7 +16,8 @@
                 "username": "",
                 "app_password": "",
                 "api_url": "https://bsky.social",
-                "template_file": "templates/post-bluesky.txt.jinja",
+                "template_path": "templates",
+                "template_file": "post-bluesky.txt.jinja",
                 "max_description_length": 150
             },
             "mastodon_settings": {
@@ -25,7 +26,8 @@
                 "secrets_file": "",
                 "client_secret": "",
                 "access_token": "",
-                "template_file": "templates/post-mastodon.txt.jinja",
+                "template_path": "templates",
+                "template_file": "post-mastodon.txt.jinja",
                 "max_description_length": 250
             }
         }
