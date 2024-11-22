@@ -48,20 +48,21 @@ source venv/bin/activate
 python3 -m pip install -r requirements.txt
 ```
 
-## Running the Script
+## Running the Application
 
 Unlike the preceding Mastodon and Bluesky Podcast Bot applications, this application only supports a JSON configuration file, `settings.json`. The use of an `.env` environment file is no longer supported.
 
-The script will automatically create the SQLite version 3 database if one does not already exist.
+The application will automatically create the SQLite version 3 database if one does not already exist.
 
 ### Command-Line Flags and Options
 
 There are several flags and options that can be set through the command line:
 
 | Flag/Option | Description |
-|---------------|-------------|
-| `--dry-run` | Runs the scripts, but skips creating any database entries (though a database file if one doesn't exist) and does not create any posts. |
-| `-f`, `--feeds-file` | Set a custom path for the feeds JSON file that contains the required podcast feed and configuration settings. |
+| ----------- | ----------- |
+| `-s`, `--settings` | Set a custom path for the feeds JSON file that contains application settings and podcast feeds. (Default: `settings.json`) |
+| `--debug` | Runs 
+| `--dry-run` | Run the application in dry run mode, which skips creating or updating database entries or posts. It will create an empty SQLite database if one does not exist. |
 | `--skip-clean` | Skips the database clean-up step to remove old entries. This step is also skipped if the `--dry-run` flag is also set. |
 
 ### Configuration File
@@ -72,9 +73,9 @@ The `feeds.json` file contains application configuration settings for the applic
 
 | Key Name | Description |
 | -------- | ----------- |
-| database_file | Location of the SQLite database file that will be used to store episodes that the script has already been processed. (Default: `dbfiles/feed_info.sqlite3`) |
+| database_file | Location of the SQLite database file that will be used to store episodes that the application has already been processed. (Default: `dbfiles/feed_info.sqlite3`) |
 | database_clean_days | Number of days to keep records in the SQLite database. Used by the clean-up function to remove older entries. This value should be greater than the value set for `recent_days`. (Default: `90`) |
-| log_file | Path for the log file the script used for recording event logs. (Default: `logs/app.log`) |
+| log_file | Path for the log file the application used for recording event logs. (Default: `logs/app.log`) |
 | user_agent | User Agent string to provide when retrieving a podcast feed. (Default: `Mozilla/5.0 (X11; Linux x86_64; rv:132.0) Gecko/20100101 Firefox/132.0`). |
 | feeds | List of [Feed configuration keys](#feed-configuration-keys) containing podcast feeds and associated settings. |
 
@@ -116,7 +117,7 @@ The `feeds.json` file contains application configuration settings for the applic
 
 ## Development
 
-Use the included `requirements-dev.txt` to install both the script and script development dependencies.
+Use the included `requirements-dev.txt` to install both the application and development dependencies.
 
 The project makes generous use to type hints to help with code documentation and can be very helpful when using Python language servers in Visual Studio Code, tools such as [mypy](http://mypy-lang.org), and others.
 
