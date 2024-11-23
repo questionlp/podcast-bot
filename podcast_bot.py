@@ -212,7 +212,7 @@ def process_feeds(
             new_episodes: list[dict[str, Any]] = retrieve_new_episodes(
                 feed_episodes=episodes,
                 feed_database=feed_database,
-                feed_name=feed.name,
+                feed_name=feed.short_name,
                 guid_filter=feed.guid_filter,
                 days=feed.recent_days,
                 dry_run=dry_run,
