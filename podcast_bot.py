@@ -109,7 +109,7 @@ def retrieve_new_episodes(
 
 
 def process_feeds(
-    feeds: FeedSettings,
+    feeds: list[FeedSettings],
     feed_database: FeedDatabase,
     user_agent: str = _DEFAULT_USER_AGENT,
     dry_run: bool = False,
@@ -133,7 +133,6 @@ def process_feeds(
 
         # Check to see if the podcast feed has been updated since the
         # last run. Only process the feed of the feed has been updated.
-        _now: datetime.datetime = datetime.datetime.now(datetime.timezone.utc)
         previous_last_modified: datetime.datetime | None = feed_database.get_last_modified(
             feed_name=feed.name
         )
@@ -147,7 +146,11 @@ def process_feeds(
         )
         logger.debug("Current Last Modified: %s", current_last_modified)
 
-        if previous_last_modified and current_last_modified <= previous_last_modified:
+        if (
+            previous_last_modified
+            and current_last_modified
+            and (previous_last_modified and current_last_modified <= previous_last_modified)
+        ):
             logger.debug("Feed has not been updated since last run.")
             continue
 
@@ -202,7 +205,7 @@ def process_feeds(
             logger.debug("New Episodes:\n%s", pformat(new_episodes))
 
             for episode in new_episodes:
-                if bluesky_client:
+                if bluesky_client and feed.bluesky_settings.enabled:
                     post_text: str = format_bluesky_post(
                         podcast_name=feed.name,
                         episode=episode,
@@ -215,7 +218,7 @@ def process_feeds(
                         logger.info("Posting %s.", episode)
                         bluesky_client.post(body=post_text, episode_url=episode["url"])
 
-                if mastodon_client:
+                if mastodon_client and feed.mastodon_settings.enabled:
                     post_text: str = format_mastodon_post(
                         podcast_name=feed.name,
                         episode=episode,
@@ -229,7 +232,9 @@ def process_feeds(
                         mastodon_client.post(content=post_text)
 
         if not dry_run:
-            feed_database.upsert_last_modified(feed_name=feed.name, last_modified=_now)
+            feed_database.upsert_last_modified(
+                feed_name=feed.short_name, last_modified=current_last_modified
+            )
 
 
 def main() -> None:
