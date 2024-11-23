@@ -27,7 +27,7 @@ class MastodonSettings(NamedTuple):
     """Mastodon Client Settings."""
 
     api_url: str
-    use_oauth: bool = False
+    use_oauth: bool
     secrets_file: str | None
     client_secret: str | None
     access_token: str | None
@@ -92,14 +92,14 @@ class AppConfig:
         if not mastodon_settings:
             return None
 
-        _api_url: str | None = mastodon_settings("api_url", None)
+        _api_url: str | None = mastodon_settings.get("api_url", None)
         if not _api_url:
             raise ValueError("Missing or blank Mastodon API URL.")
 
-        _use_oauth: bool = mastodon_settings("use_oauth", False)
-        _secrets_file: str | None = mastodon_settings("secrets_file", None)
-        _client_secret: str | None = mastodon_settings("client_secret", None)
-        _access_token: str | None = mastodon_settings("access_token", None)
+        _use_oauth: bool = mastodon_settings.get("use_oauth", False)
+        _secrets_file: str | None = mastodon_settings.get("secrets_file", None)
+        _client_secret: str | None = mastodon_settings.get("client_secret", None)
+        _access_token: str | None = mastodon_settings.get("access_token", None)
 
         if _use_oauth and not _secrets_file:
             raise ValueError(
@@ -179,7 +179,7 @@ class AppConfig:
                 print("ERROR: Application settings JSON file could not be parsed.")
                 sys.exit(1)
 
-            if not isinstance(_app_settings, list):
+            if not isinstance(_app_settings, dict):
                 print("ERROR: Application settings JSON file is not valid.")
                 sys.exit(1)
 

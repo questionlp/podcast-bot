@@ -4,9 +4,9 @@ dbfiles/*
 *.sqlite3
 
 # Feeds config file
-feeds.json
-feeds.live.json
-feeds.test.json
+settings.json
+settings.live.json
+settings.test.json
 
 # Exclude log files
 logs/*

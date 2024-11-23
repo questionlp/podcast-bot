@@ -12,7 +12,8 @@ import podcastparser
 import requests
 from dateutil import parser
 from dateutil.parser import ParserError
-from settings import _DEFAULT_USER_AGENT
+
+from modules.settings import _DEFAULT_USER_AGENT
 
 
 class PodcastFeed:

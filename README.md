@@ -61,7 +61,7 @@ There are several flags and options that can be set through the command line:
 | Flag/Option | Description |
 | ----------- | ----------- |
 | `-s`, `--settings` | Set a custom path for the feeds JSON file that contains application settings and podcast feeds. (Default: `settings.json`) |
-| `--debug` | Runs 
+| `--debug` | Runs the application in debug mode with more verbose logging. |
 | `--dry-run` | Run the application in dry run mode, which skips creating or updating database entries or posts. It will create an empty SQLite database if one does not exist. |
 | `--skip-clean` | Skips the database clean-up step to remove old entries. This step is also skipped if the `--dry-run` flag is also set. |
 
