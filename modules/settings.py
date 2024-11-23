@@ -15,49 +15,81 @@ _DEFAULT_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:132.0) Gecko/20100101 
 class BlueskySettings(NamedTuple):
     """Bluesky Client Settings."""
 
+    enabled: bool
+    "Enable support for posting podcast episodes to Bluesky."
     username: str
+    "Bluesky account username including the @ prefix."
     app_password: str
+    "Bluesky account app password."
     api_url: str
+    "Bluesky API URL."
     template_path: str
+    "Path to the directory containing the Jinja template file."
     template_file: str
+    "Name of the Jinja template file."
     max_description_length: int
+    "Maximum podcast episode description length."
 
 
 class MastodonSettings(NamedTuple):
     """Mastodon Client Settings."""
 
+    enabled: bool
+    "Enable support for posting podcast episodes to Mastodon."
     api_url: str
+    "Mastodon API base URL."
     use_oauth: bool
+    "Use OAuth authentication."
     secrets_file: str | None
+    "Path to the secrets file used for OAuth authentication."
     client_secret: str | None
+    "Mastodon account application client secret."
     access_token: str | None
+    "Mastodon account application access token."
     template_path: str
+    "Path to the directory containing the Jinja template file."
     template_file: str
+    "Name of the Jinja template file."
     max_description_length: int
+    "Maximum podcast episode description length."
 
 
 class FeedSettings(NamedTuple):
     """Podcast Feed Settings."""
 
     name: str
+    "Podcast name."
     short_name: str
+    "Shorthand name or identifier for the podcast."
     feed_url: str
+    "Podcast feed URL."
     enabled: bool
+    "Enable processing and posting of new podcast episodes."
     recent_days: int
+    "Process episodes from the feed for the past number of days."
     max_episodes: int
+    "Process a maximum number of episodes from the feed."
     guid_filter: str
+    "String used to filter out specific podcast episode GUIDs."
     bluesky_settings: BlueskySettings | None
+    "Settings for posting to Bluesky."
     mastodon_settings: MastodonSettings | None
+    "Settings for posting to Mastodon."
 
 
 class AppSettings(NamedTuple):
     """Application Settings."""
 
     database_file: str = "dbfiles/feed_info.sqlite3"
+    "Path to the SQLite database for storing podcast episode information."
     database_clean_days: int = 90
+    "Clean database entries that are older than the given number of days."
     log_file: str = "logs/app.log"
+    "Path to the file to be used for logging."
     user_agent: str = _DEFAULT_USER_AGENT
+    "Browser user agent string used when retrieving podcast feeds."
     feeds: list[FeedSettings] | None = None
+    "List of podcast feeds."
 
 
 class AppConfig:
@@ -78,6 +110,7 @@ class AppConfig:
             raise ValueError("Missing or blank Bluesky app password.")
 
         return BlueskySettings(
+            enabled=bool(bluesky_settings.get("enabled", True)),
             username=_username.strip(),
             app_password=_app_password.strip(),
             api_url=bluesky_settings.get("api_url", "https://bsky.social").strip(),
@@ -113,6 +146,7 @@ class AppConfig:
             raise ValueError("Missing or blank Mastodon access token.")
 
         return MastodonSettings(
+            enabled=bool(mastodon_settings.get("enabled", True)),
             api_url=_api_url.strip(),
             use_oauth=_use_oauth,
             secrets_file=_secrets_file.strip(),
@@ -120,7 +154,7 @@ class AppConfig:
             access_token=_access_token.strip(),
             template_path=mastodon_settings.get("template_path", "templates").strip(),
             template_file=mastodon_settings.get("template_file", "post-mastodon.txt.jinja").strip(),
-            max_description_length=int(mastodon_settings.get("max_description_length", 250)),
+            max_description_length=int(mastodon_settings.get("max_description_length", 275)),
         )
 
     def parse_feed(self, feed_settings: list[dict[str, Any]]) -> FeedSettings | None:
