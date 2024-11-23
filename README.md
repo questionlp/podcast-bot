@@ -98,7 +98,7 @@ The `feeds.json` file contains application configuration settings for the applic
 | Key Name | Description |
 | -------- | ----------- |
 | enabled | Enable posting new episodes to Bluesky. (Default: `true`) |
-| username | Bluesky account username, including the leading `@`. |
+| username | Bluesky account username, excluding the leading `@`. |
 | app_password | App password for the Bluesky account. |
 | api_url | The base API URL for Bluesky. (Default: `https://bsky.social`) |
 | template_file | Path for the Jinja2 template file that will be used to format the post. (Default: `templates/post-bluesky.txt.jinja`) |

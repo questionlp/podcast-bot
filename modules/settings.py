@@ -18,7 +18,7 @@ class BlueskySettings(NamedTuple):
     enabled: bool
     "Enable support for posting podcast episodes to Bluesky."
     username: str
-    "Bluesky account username including the @ prefix."
+    "Bluesky account username, excluding the @ prefix."
     app_password: str
     "Bluesky account app password."
     api_url: str
@@ -111,7 +111,7 @@ class AppConfig:
 
         return BlueskySettings(
             enabled=bool(bluesky_settings.get("enabled", True)),
-            username=_username.strip(),
+            username=_username.strip().lstrip("@"),
             app_password=_app_password.strip(),
             api_url=bluesky_settings.get("api_url", "https://bsky.social").strip(),
             template_path=bluesky_settings.get("template_path", "templates").strip(),
