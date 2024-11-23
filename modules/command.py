@@ -19,7 +19,9 @@ def parse() -> Namespace:
         default="settings.json",
         help="Application settings file (default: settings.json)",
     )
-    parser.add_argument("--debug", action="store_true", help="Enable debug output to stdout")
+    parser.add_argument(
+        "--debug", action="store_true", help="Enable debug output to stdout"
+    )
     parser.add_argument(
         "--skip-clean",
         action="store_true",

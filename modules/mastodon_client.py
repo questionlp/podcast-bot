@@ -18,7 +18,9 @@ class MastodonClient:
     ) -> None:
         """Class initialization method."""
         if api_url and access_token:
-            self.connection: Mastodon = self.connect(api_url=api_url, access_token=access_token)
+            self.connection: Mastodon = self.connect(
+                api_url=api_url, access_token=access_token
+            )
         elif api_url and client_secret and access_token:
             self.connection: Mastodon = self.connect(
                 api_url=api_url, client_secret=client_secret, access_token=access_token

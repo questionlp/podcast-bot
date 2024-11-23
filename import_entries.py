@@ -69,7 +69,9 @@ def create_database(db_file: str) -> None:
     database.close()
 
 
-def import_entries(entries: list[dict[str, Any]], db_file: str, podcast_name: str) -> None:
+def import_entries(
+    entries: list[dict[str, Any]], db_file: str, podcast_name: str
+) -> None:
     """Import entries into a podcast feed database file."""
     if not entries:
         return
@@ -106,7 +108,9 @@ def _main() -> None:
         print("No entries to import.")
         return
 
-    import_entries(entries=_entries, db_file=_command.db_file, podcast_name=_command.podcast_name)
+    import_entries(
+        entries=_entries, db_file=_command.db_file, podcast_name=_command.podcast_name
+    )
     return
 
 

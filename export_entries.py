@@ -68,7 +68,9 @@ def get_entries(db_file: str, podcast_name: str = None) -> list[dict[str, Any]] 
     for record in records:
         entries.append(
             {
-                "podcast_name": podcast_name if podcast_name else record["podcast_name"],
+                "podcast_name": (
+                    podcast_name if podcast_name else record["podcast_name"]
+                ),
                 "guid": record["guid"],
                 "enclosure_url": record["enclosure_url"],
                 "processed_date": record["processed"],

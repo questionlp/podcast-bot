@@ -17,7 +17,7 @@ from dateutil.parser import ParserError
 class FeedDatabase:
     """Feed Database Access."""
 
-    _timestamp = datetime.datetime.now()
+    _timestamp = datetime.datetime.now(datetime.timezone.utc)
 
     def __init__(self, db_file: str = None) -> None:
         """Class initialization method."""
@@ -99,7 +99,9 @@ class FeedDatabase:
             self.connection.commit()
         else:
             self.connection.execute(
-                ("INSERT INTO episodes (guid, podcast_name, processed) VALUES (?, ?, ?)"),
+                (
+                    "INSERT INTO episodes (guid, podcast_name, processed) VALUES (?, ?, ?)"
+                ),
                 (guid, feed_name, timestamp),
             )
             self.connection.commit()
@@ -176,7 +178,9 @@ class FeedDatabase:
 
         return None
 
-    def upsert_last_modified(self, feed_name: str, last_modified: datetime.datetime = _timestamp):
+    def upsert_last_modified(
+        self, feed_name: str, last_modified: datetime.datetime = _timestamp
+    ):
         """Update or insert feed last modified date."""
         if feed_name and last_modified:
             self.connection.execute(
@@ -194,8 +198,10 @@ class FeedDatabase:
 
     def clean(self, days_to_keep: int = 90) -> None:
         """Remove old episode entries from the database."""
-        datetime_filter: datetime.datetime = datetime.datetime.now() - datetime.timedelta(
-            days=days_to_keep
+        datetime_filter: datetime.datetime = datetime.datetime.now(
+            datetime.timezone.utc
+        ) - datetime.timedelta(days=days_to_keep)
+        self.connection.execute(
+            "DELETE FROM episodes WHERE processed <= ?", (datetime_filter,)
         )
-        self.connection.execute("DELETE FROM episodes WHERE processed <= ?", (datetime_filter,))
         self.connection.commit()

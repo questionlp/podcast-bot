@@ -13,16 +13,22 @@ from typing import Any
 import modules.command
 from modules.bluesky_client import BlueskyClient
 from modules.database import FeedDatabase
-from modules.formatting import format_bluesky_post, format_mastodon_post
+from modules.formatting import (
+    format_bluesky_post,
+    format_mastodon_post,
+    timedelta_to_str,
+)
 from modules.mastodon_client import MastodonClient
 from modules.podcast_feed import PodcastFeed
 from modules.settings import _DEFAULT_USER_AGENT, AppConfig, AppSettings, FeedSettings
 
-APP_VERSION: str = "1.0.0-alpha"
+APP_VERSION: str = "1.0.0-beta"
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-def configure_logging(log_file: str = "logs/app.log", debug: bool = False) -> logging.FileHandler:
+def configure_logging(
+    log_file: str = "logs/app.log", debug: bool = False
+) -> logging.FileHandler:
     """Configure application logging."""
     log_handler: logging.FileHandler = logging.FileHandler(log_file)
     log_format: logging.Formatter = logging.Formatter(
@@ -48,7 +54,9 @@ def retrieve_new_episodes(
 ) -> list[dict[str, Any]]:
     """Retrieve new episodes from a podcast feed."""
     seen_guids: list[str] = feed_database.retrieve_guids(feed_name=feed_name)
-    seen_enclosure_urls: list[str] = feed_database.retrieve_enclosure_urls(feed_name=feed_name)
+    seen_enclosure_urls: list[str] = feed_database.retrieve_enclosure_urls(
+        feed_name=feed_name
+    )
 
     logger.debug("Seen GUIDs:\n%s", pformat(seen_guids, compact=True))
     logger.debug("Seen Enclosure URLs:\n%s", pformat(seen_enclosure_urls, compact=True))
@@ -58,9 +66,19 @@ def retrieve_new_episodes(
     for episode in feed_episodes:
         guid: str = episode["guid"]
         enclosure_url: str = episode["enclosures"][0]["url"].strip()
-        publish_date: datetime.datetime = datetime.datetime.fromtimestamp(episode["published"])
+        publish_date: datetime.datetime = datetime.datetime.fromtimestamp(
+            episode["published"]
+        )
+        total_time: datetime.timedelta = datetime.timedelta(
+            seconds=episode.get("total_time", 0)
+        )
+        total_time_str: str = timedelta_to_str(
+            time_delta=total_time, format_string="{H}h {M}m {S}s"
+        )
 
-        if datetime.datetime.now() - publish_date <= datetime.timedelta(days=days):
+        if datetime.datetime.now(
+            datetime.timezone.utc
+        ) - publish_date <= datetime.timedelta(days=days):
             # Only process episodes in which the GUID or the enclosure URL are
             # not in the episodes database table
             if guid not in seen_guids or enclosure_url not in seen_enclosure_urls:
@@ -72,7 +90,8 @@ def retrieve_new_episodes(
                         "guid": guid,
                         "published": publish_date,
                         "title": episode["title"].strip(),
-                        "duration": datetime.timedelta(seconds=episode["total_time"]),
+                        "total_time": total_time_str,
+                        "total_time_delta": total_time,
                         "url": enclosure_url,
                     }
 
@@ -96,13 +115,13 @@ def retrieve_new_episodes(
                                 guid=guid,
                                 enclosure_url=enclosure_url,
                                 feed_name=feed_name,
-                                timestamp=datetime.datetime.now(),
+                                timestamp=datetime.datetime.now(datetime.timezone.utc),
                             )
                         else:
                             feed_database.insert(
                                 guid=guid,
                                 feed_name=feed_name,
-                                timestamp=datetime.datetime.now(),
+                                timestamp=datetime.datetime.now(datetime.timezone.utc),
                             )
 
     return episodes
@@ -116,9 +135,6 @@ def process_feeds(
 ):
     """Process podcast feeds and post new episodes."""
     for feed in feeds:
-        logger.debug("Starting")
-        if dry_run:
-            logger.debug("Running in dry mode.")
 
         logger.debug("Podcast Name: %s", feed.name)
 
@@ -133,8 +149,8 @@ def process_feeds(
 
         # Check to see if the podcast feed has been updated since the
         # last run. Only process the feed of the feed has been updated.
-        previous_last_modified: datetime.datetime | None = feed_database.get_last_modified(
-            feed_name=feed.name
+        previous_last_modified: datetime.datetime | None = (
+            feed_database.get_last_modified(feed_name=feed.name)
         )
         current_last_modified: datetime.datetime | None = podcast.last_modified(
             feed_url=feed.feed_url
@@ -149,7 +165,10 @@ def process_feeds(
         if (
             previous_last_modified
             and current_last_modified
-            and (previous_last_modified and current_last_modified <= previous_last_modified)
+            and (
+                previous_last_modified
+                and current_last_modified <= previous_last_modified
+            )
         ):
             logger.debug("Feed has not been updated since last run.")
             continue
@@ -257,6 +276,10 @@ def main() -> None:
     # Check to see if the feed database file exists. Create file if
     # the file does not exist
     feed_database: FeedDatabase = FeedDatabase(app_settings.database_file)
+
+    logger.debug("Starting")
+    if dry_run:
+        logger.debug("Running in dry mode.")
 
     process_feeds(
         feeds=app_settings.feeds,

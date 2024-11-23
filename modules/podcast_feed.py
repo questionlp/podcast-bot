@@ -20,7 +20,10 @@ class PodcastFeed:
     """Podcast Feed Fetcher."""
 
     def fetch(
-        self, feed_url: str, max_episodes: int = 50, user_agent: str = _DEFAULT_USER_AGENT
+        self,
+        feed_url: str,
+        max_episodes: int = 50,
+        user_agent: str = _DEFAULT_USER_AGENT,
     ) -> list[dict[str, Any]] | None:
         """Fetch items from the requested podcast feed."""
         with requests.get(
@@ -38,7 +41,10 @@ class PodcastFeed:
     ) -> datetime.datetime | None:
         """Retrieve last modified date and time for the requested feed."""
         feed: requests.Response = requests.head(
-            url=feed_url, headers={"User-Agent": user_agent}, timeout=30, allow_redirects=True
+            url=feed_url,
+            headers={"User-Agent": user_agent},
+            timeout=30,
+            allow_redirects=True,
         )
 
         if feed and feed.status_code == 200:

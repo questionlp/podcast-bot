@@ -9,7 +9,9 @@ import sys
 from pathlib import Path
 from typing import NamedTuple, Any
 
-_DEFAULT_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:132.0) Gecko/20100101 Firefox/132.0"
+_DEFAULT_USER_AGENT = (
+    "Mozilla/5.0 (X11; Linux x86_64; rv:132.0) Gecko/20100101 Firefox/132.0"
+)
 
 
 class BlueskySettings(NamedTuple):
@@ -101,32 +103,40 @@ class AppConfig:
         if not bluesky_settings:
             return None
 
+        _enabled: bool = bool(bluesky_settings.get("enabled", True))
         _username: str | None = bluesky_settings.get("username", None)
-        if not _username:
+        if _enabled and not _username:
             raise ValueError("Missing or blank Bluesky username.")
 
         _app_password: str | None = bluesky_settings.get("app_password", None)
-        if not _app_password:
+        if _enabled and not _app_password:
             raise ValueError("Missing or blank Bluesky app password.")
 
         return BlueskySettings(
-            enabled=bool(bluesky_settings.get("enabled", True)),
+            enabled=_enabled,
             username=_username.strip().lstrip("@"),
             app_password=_app_password.strip(),
             api_url=bluesky_settings.get("api_url", "https://bsky.social").strip(),
             template_path=bluesky_settings.get("template_path", "templates").strip(),
-            template_file=bluesky_settings.get("template_file", "post-bluesky.txt.jinja").strip(),
-            max_description_length=int(bluesky_settings.get("max_description_length", 150)),
+            template_file=bluesky_settings.get(
+                "template_file", "post-bluesky.txt.jinja"
+            ).strip(),
+            max_description_length=int(
+                bluesky_settings.get("max_description_length", 150)
+            ),
         )
 
-    def parse_mastodon(self, mastodon_settings: dict[str, Any]) -> MastodonSettings | None:
+    def parse_mastodon(
+        self, mastodon_settings: dict[str, Any]
+    ) -> MastodonSettings | None:
         """Parse Mastodon settings from a dictionary."""
 
         if not mastodon_settings:
             return None
 
+        _enabled: bool = bool(mastodon_settings.get("enabled", True))
         _api_url: str | None = mastodon_settings.get("api_url", None)
-        if not _api_url:
+        if _enabled and not _api_url:
             raise ValueError("Missing or blank Mastodon API URL.")
 
         _use_oauth: bool = mastodon_settings.get("use_oauth", False)
@@ -134,33 +144,40 @@ class AppConfig:
         _client_secret: str | None = mastodon_settings.get("client_secret", None)
         _access_token: str | None = mastodon_settings.get("access_token", None)
 
-        if _use_oauth and not _secrets_file:
+        if _enabled and (_use_oauth and not _secrets_file):
             raise ValueError(
                 "Missing or blank Mastodon secrets file. Required for OAuth authentication."
             )
 
-        if not _use_oauth and not _client_secret:
+        if _enabled and (not _use_oauth and not _client_secret):
             raise ValueError("Missing or blank Mastodon client secret.")
 
-        if not _use_oauth and not _access_token:
+        if _enabled and (not _use_oauth and not _access_token):
             raise ValueError("Missing or blank Mastodon access token.")
 
         return MastodonSettings(
-            enabled=bool(mastodon_settings.get("enabled", True)),
+            enabled=_enabled,
             api_url=_api_url.strip(),
             use_oauth=_use_oauth,
             secrets_file=_secrets_file.strip(),
             client_secret=_client_secret.strip(),
             access_token=_access_token.strip(),
             template_path=mastodon_settings.get("template_path", "templates").strip(),
-            template_file=mastodon_settings.get("template_file", "post-mastodon.txt.jinja").strip(),
-            max_description_length=int(mastodon_settings.get("max_description_length", 275)),
+            template_file=mastodon_settings.get(
+                "template_file", "post-mastodon.txt.jinja"
+            ).strip(),
+            max_description_length=int(
+                mastodon_settings.get("max_description_length", 275)
+            ),
         )
 
     def parse_feed(self, feed_settings: list[dict[str, Any]]) -> FeedSettings | None:
         """Parse podcast feed settings from a dictionary."""
 
-        if "bluesky_settings" not in feed_settings and "mastodon_settings" not in feed_settings:
+        if (
+            "bluesky_settings" not in feed_settings
+            and "mastodon_settings" not in feed_settings
+        ):
             raise ValueError(
                 "Bluesky and Mastodon settings are not defined. "
                 "Either Bluesky or Mastodon settings are required."
@@ -237,7 +254,9 @@ class AppConfig:
             ).strip(),
             database_clean_days=int(_app_settings.get("database_clean_days", 90)),
             log_file=str(_app_settings.get("log_file", "logs/app.log")).strip(),
-            user_agent=str(_app_settings.get("user_agent", _DEFAULT_USER_AGENT)).strip(),
+            user_agent=str(
+                _app_settings.get("user_agent", _DEFAULT_USER_AGENT)
+            ).strip(),
             feeds=_feeds_settings,
         )
 
