@@ -1,3 +1,7 @@
+{% if podcast_name %}
+New episode from {{ podcast_name | trim }}: {{ title }}
+{% else %}
 New Episode: {{ title }}
+{% endif %}
 
 {{ description }}
