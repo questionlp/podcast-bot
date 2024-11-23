@@ -97,6 +97,7 @@ The `feeds.json` file contains application configuration settings for the applic
 
 | Key Name | Description |
 | -------- | ----------- |
+| enabled | Enable posting new episodes to Bluesky. (Default: `true`) |
 | username | Bluesky account username, including the leading `@`. |
 | app_password | App password for the Bluesky account. |
 | api_url | The base API URL for Bluesky. (Default: `https://bsky.social`) |
@@ -107,13 +108,14 @@ The `feeds.json` file contains application configuration settings for the applic
 
 | Key Name | Description |
 | -------- | ----------- |
+| enabled | Enable posting new episodes to Mastodon. (Default: `true`) |
 | api_url | The base API URL for your Mastodon instance. Refer to your Mastodon instance for the appropriate URL to use. |
 | use_oauth | Set whether or not a Mastodon secrets file will be used for authenticiation. (Default: `false`) |
 | secrets_file | OAuth secret file that will be used to authenticate your Mastodon user account against your Mastodon server. Required when `use_oath` is set to `true`. (Default: `secrets/usercred.secret`) |
 | client_secret | Mastodon API client secret used for authentication. Not required when using OAuth authentication. |
 | access_token | Mastodon API access token used for authentiication. Not required when using OAuth authentication. |
 | template_file | Path for the Jinja2 template file that will be used to format the post. (Default: `templates/post-mastodon.txt.jinja`) |
-| max_description_length | Maximum length (in characters) of the podcast episode description to be included in the post. (Default: `250`) |
+| max_description_length | Maximum length (in characters) of the podcast episode description to be included in the post. (Default: `275`) |
 
 ## Development
 

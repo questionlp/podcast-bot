@@ -13,6 +13,7 @@
             "max_episodes": 20,
             "guid_filter": "",
             "bluesky_settings": {
+                "enabled": true,
                 "username": "",
                 "app_password": "",
                 "api_url": "https://bsky.social",
@@ -21,6 +22,7 @@
                 "max_description_length": 150
             },
             "mastodon_settings": {
+                "enabled": true,
                 "api_url": "",
                 "use_oauth": false,
                 "secrets_file": "",
@@ -28,7 +30,7 @@
                 "access_token": "",
                 "template_path": "templates",
                 "template_file": "post-mastodon.txt.jinja",
-                "max_description_length": 250
+                "max_description_length": 275
             }
         }
     ]
