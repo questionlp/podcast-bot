@@ -5,8 +5,8 @@ dbfiles/*
 
 # Feeds config file
 settings.json
-settings.live.json
-settings.test.json
+settings.*.json
+!settings.dist.json
 
 # Exclude log files
 logs/*
