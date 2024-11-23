@@ -1,5 +1,5 @@
 # Copyright (c) 2022-2024 Linh Pham
-# mastodon-podcast-bot is released under the terms of the MIT License
+# podcast-bot is released under the terms of the MIT License
 # SPDX-License-Identifier: MIT
 #
 # vim: set noai syntax=python ts=4 sw=4:
