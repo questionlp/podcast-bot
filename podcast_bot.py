@@ -76,9 +76,7 @@ def retrieve_new_episodes(
             time_delta=total_time, format_string="{H}h {M}m {S}s"
         )
 
-        if datetime.datetime.now(
-            datetime.timezone.utc
-        ) - publish_date <= datetime.timedelta(days=days):
+        if datetime.datetime.now() - publish_date <= datetime.timedelta(days=days):
             # Only process episodes in which the GUID or the enclosure URL are
             # not in the episodes database table
             if guid not in seen_guids or enclosure_url not in seen_enclosure_urls:

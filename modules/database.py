@@ -198,9 +198,9 @@ class FeedDatabase:
 
     def clean(self, days_to_keep: int = 90) -> None:
         """Remove old episode entries from the database."""
-        datetime_filter: datetime.datetime = datetime.datetime.now(
-            datetime.timezone.utc
-        ) - datetime.timedelta(days=days_to_keep)
+        datetime_filter: datetime.datetime = (
+            datetime.datetime.now() - datetime.timedelta(days=days_to_keep)
+        )
         self.connection.execute(
             "DELETE FROM episodes WHERE processed <= ?", (datetime_filter,)
         )
