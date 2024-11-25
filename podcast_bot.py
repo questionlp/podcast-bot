@@ -22,7 +22,7 @@ from modules.mastodon_client import MastodonClient
 from modules.podcast_feed import PodcastFeed
 from modules.settings import _DEFAULT_USER_AGENT, AppConfig, AppSettings, FeedSettings
 
-APP_VERSION: str = "1.0.1"
+APP_VERSION: str = "1.0.2-beta"
 logger: logging.Logger = logging.getLogger(__name__)
 
 
@@ -177,37 +177,6 @@ def process_feeds(
             user_agent=user_agent,
         )
 
-        bluesky_client: BlueskyClient | bool = False
-        if feed.bluesky_settings.enabled and not dry_run:
-            # Setup Bluesky Client
-            logger.debug("Bluesky API URL: %s", feed.bluesky_settings.api_url)
-            bluesky_client = BlueskyClient(
-                api_url=feed.bluesky_settings.api_url,
-                username=feed.bluesky_settings.username,
-                app_password=feed.bluesky_settings.app_password,
-            )
-        elif feed.bluesky_settings.enabled and dry_run:
-            bluesky_client = True
-
-        mastodon_client: MastodonClient | bool = False
-        if feed.mastodon_settings.enabled and not dry_run:
-            # Connect to Mastodon Client
-            logger.debug("Mastodon API URL: %s", feed.mastodon_settings.api_url)
-            if feed.mastodon_settings.use_oauth:
-                mastodon_client = MastodonClient(
-                    api_url=feed.mastodon_settings.api_url,
-                    client_secret=None,
-                    access_token=feed.mastodon_settings.secrets_file,
-                )
-            else:
-                mastodon_client = MastodonClient(
-                    api_url=feed.mastodon_settings.api_url,
-                    client_secret=feed.mastodon_settings.client_secret,
-                    access_token=feed.mastodon_settings.access_token,
-                )
-        elif feed.mastodon_settings.enabled and dry_run:
-            mastodon_client = True
-
         if episodes:
             new_episodes: list[dict[str, Any]] = retrieve_new_episodes(
                 feed_episodes=episodes,
@@ -220,6 +189,40 @@ def process_feeds(
             new_episodes.reverse()
 
             logger.debug("New Episodes:\n%s", pformat(new_episodes))
+
+            if not new_episodes:
+                continue
+
+            bluesky_client: BlueskyClient | bool = False
+            if feed.bluesky_settings.enabled and not dry_run:
+                # Setup Bluesky Client
+                logger.debug("Bluesky API URL: %s", feed.bluesky_settings.api_url)
+                bluesky_client = BlueskyClient(
+                    api_url=feed.bluesky_settings.api_url,
+                    username=feed.bluesky_settings.username,
+                    app_password=feed.bluesky_settings.app_password,
+                )
+            elif feed.bluesky_settings.enabled and dry_run:
+                bluesky_client = True
+
+            mastodon_client: MastodonClient | bool = False
+            if feed.mastodon_settings.enabled and not dry_run:
+                # Connect to Mastodon Client
+                logger.debug("Mastodon API URL: %s", feed.mastodon_settings.api_url)
+                if feed.mastodon_settings.use_oauth:
+                    mastodon_client = MastodonClient(
+                        api_url=feed.mastodon_settings.api_url,
+                        client_secret=None,
+                        access_token=feed.mastodon_settings.secrets_file,
+                    )
+                else:
+                    mastodon_client = MastodonClient(
+                        api_url=feed.mastodon_settings.api_url,
+                        client_secret=feed.mastodon_settings.client_secret,
+                        access_token=feed.mastodon_settings.access_token,
+                    )
+            elif feed.mastodon_settings.enabled and dry_run:
+                mastodon_client = True
 
             for episode in new_episodes:
                 if bluesky_client and feed.bluesky_settings.enabled:
