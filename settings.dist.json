@@ -1,7 +1,6 @@
 {
     "database_file": "dbfiles/feed_info.sqlite3",
     "database_clean_days": 90,
-    "bluesky_session_file": "dbfiles/bluesky_session.sqlite3",
     "log_file": "logs/app.log",
     "user_agent": "Mozilla/5.0 (X11; Linux x86_64; rv:130.0) Gecko/20100101 Firefox/130.0",
     "feeds": [
@@ -17,6 +16,8 @@
                 "enabled": true,
                 "username": "",
                 "app_password": "",
+                "bluesky_session_file": "dbfiles/bluesky_session.sqlite3",
+                "use_session_token": false,
                 "api_url": "https://bsky.social",
                 "template_path": "templates",
                 "template_file": "post-bluesky.txt.jinja",
