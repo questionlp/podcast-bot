@@ -136,10 +136,10 @@ def process_feeds(
     """Process podcast feeds and post new episodes."""
     for feed in feeds:
 
-        logger.debug("Podcast Name: %s", feed.name)
+        logger.info("Podcast Name: %s", feed.name)
 
         if not feed.enabled:
-            logger.debug("Feed disabled. Skipping.")
+            logger.info("Feed disabled. Skipping.")
             continue
 
         # Pull episodes from the configured podcast feed
@@ -193,6 +193,7 @@ def process_feeds(
             logger.debug("New Episodes:\n%s", pformat(new_episodes))
 
             if not new_episodes:
+                logger.info("No new episodes.")
                 continue
 
             bluesky_client: BlueskyClient | bool = False
@@ -272,7 +273,7 @@ def main() -> None:
     arguments: Namespace = modules.command.parse()
 
     if arguments.version:
-        print(f"Version {APP_VERSION}")
+        print(f"podcast-bot {APP_VERSION}")
         return
 
     dry_run: bool = arguments.dry_run
@@ -288,9 +289,9 @@ def main() -> None:
     # the file does not exist
     feed_database: FeedDatabase = FeedDatabase(app_settings.database_file)
 
-    logger.debug("Starting")
+    logger.info("Starting")
     if dry_run:
-        logger.debug("Running in dry mode.")
+        logger.info("Running in dry mode.")
 
     process_feeds(
         feeds=app_settings.feeds,
@@ -299,6 +300,7 @@ def main() -> None:
         dry_run=dry_run,
     )
 
+    logger.info("Finishing.")
     if not dry_run and not arguments.skip_clean:
         feed_database.clean(days_to_keep=app_settings.database_clean_days)
 
