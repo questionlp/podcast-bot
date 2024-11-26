@@ -10,6 +10,8 @@ from argparse import Namespace
 from pprint import pformat
 from typing import Any
 
+from atproto_client.exceptions import RequestException
+
 import modules.command
 from modules.bluesky_client import BlueskyClient
 from modules.database import FeedDatabase
@@ -22,7 +24,7 @@ from modules.mastodon_client import MastodonClient
 from modules.podcast_feed import PodcastFeed
 from modules.settings import _DEFAULT_USER_AGENT, AppConfig, AppSettings, FeedSettings
 
-APP_VERSION: str = "1.0.2-beta"
+APP_VERSION: str = "1.1.0-beta"
 logger: logging.Logger = logging.getLogger(__name__)
 
 
@@ -128,6 +130,7 @@ def retrieve_new_episodes(
 def process_feeds(
     feeds: list[FeedSettings],
     feed_database: FeedDatabase,
+    bluesky_session_file: str,
     user_agent: str = _DEFAULT_USER_AGENT,
     dry_run: bool = False,
 ):
@@ -195,13 +198,18 @@ def process_feeds(
 
             bluesky_client: BlueskyClient | bool = False
             if feed.bluesky_settings.enabled and not dry_run:
-                # Setup Bluesky Client
-                logger.debug("Bluesky API URL: %s", feed.bluesky_settings.api_url)
-                bluesky_client = BlueskyClient(
-                    api_url=feed.bluesky_settings.api_url,
-                    username=feed.bluesky_settings.username,
-                    app_password=feed.bluesky_settings.app_password,
-                )
+                try:
+                    # Setup Bluesky Client
+                    logger.debug("Bluesky API URL: %s", feed.bluesky_settings.api_url)
+                    bluesky_client = BlueskyClient(
+                        api_url=feed.bluesky_settings.api_url,
+                        username=feed.bluesky_settings.username,
+                        app_password=feed.bluesky_settings.app_password,
+                        db_file=bluesky_session_file,
+                    )
+                except RequestException as at_except:
+                    logger.info("Unable to connect to Bluesky:\n%s", at_except)
+                    bluesky_client = False
             elif feed.bluesky_settings.enabled and dry_run:
                 bluesky_client = True
 
@@ -237,6 +245,7 @@ def process_feeds(
                     if not dry_run:
                         logger.info("Posting %s.", episode)
                         bluesky_client.post(body=post_text, episode_url=episode["url"])
+                        bluesky_client.save_session()
 
                 if mastodon_client and feed.mastodon_settings.enabled:
                     post_text: str = format_mastodon_post(
@@ -285,6 +294,7 @@ def main() -> None:
     process_feeds(
         feeds=app_settings.feeds,
         feed_database=feed_database,
+        bluesky_session_file=app_settings.bluesky_session_file,
         user_agent=app_settings.user_agent,
         dry_run=dry_run,
     )
