@@ -130,7 +130,6 @@ def retrieve_new_episodes(
 def process_feeds(
     feeds: list[FeedSettings],
     feed_database: FeedDatabase,
-    bluesky_session_file: str,
     user_agent: str = _DEFAULT_USER_AGENT,
     dry_run: bool = False,
 ):
@@ -205,7 +204,8 @@ def process_feeds(
                         api_url=feed.bluesky_settings.api_url,
                         username=feed.bluesky_settings.username,
                         app_password=feed.bluesky_settings.app_password,
-                        db_file=bluesky_session_file,
+                        session_file=feed.bluesky_settings.session_file,
+                        use_session_token=feed.bluesky_settings.use_session_token,
                     )
                 except RequestException as at_except:
                     logger.info("Unable to connect to Bluesky:\n%s", at_except)
@@ -243,9 +243,10 @@ def process_feeds(
                     )
 
                     if not dry_run:
-                        logger.info("Posting %s.", episode)
+                        logger.info("Bluesky: Posting %s", episode)
                         bluesky_client.post(body=post_text, episode_url=episode["url"])
-                        bluesky_client.save_session()
+                        if feed.bluesky_settings.use_session_token:
+                            bluesky_client.save_session()
 
                 if mastodon_client and feed.mastodon_settings.enabled:
                     post_text: str = format_mastodon_post(
@@ -257,7 +258,7 @@ def process_feeds(
                     )
 
                     if not dry_run:
-                        logger.info("Posting %s.", episode)
+                        logger.info("Mastodon: Posting %s", episode)
                         mastodon_client.post(content=post_text)
 
         if not dry_run:
@@ -294,7 +295,6 @@ def main() -> None:
     process_feeds(
         feeds=app_settings.feeds,
         feed_database=feed_database,
-        bluesky_session_file=app_settings.bluesky_session_file,
         user_agent=app_settings.user_agent,
         dry_run=dry_run,
     )

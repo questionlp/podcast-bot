@@ -14,13 +14,13 @@ from atproto import Client, client_utils
 class BlueskyClientSession:
     """Bluesky Client Session."""
 
-    def __init__(self, db_file: str = None) -> None:
+    def __init__(self, session_file: str = None) -> None:
         """Class initialization method."""
-        if db_file and not Path(db_file).exists():
-            self.initialize(db_file)
-            self.connection: Connection = sqlite3.connect(db_file)
-        if db_file and Path(db_file).exists():
-            self.connection: Connection = sqlite3.connect(db_file)
+        if session_file and not Path(session_file).exists():
+            self.initialize(session_file)
+            self.connection: Connection = sqlite3.connect(session_file)
+        if session_file and Path(session_file).exists():
+            self.connection: Connection = sqlite3.connect(session_file)
             self._migrate()
 
     def initialize(self, db_file: str) -> None:
@@ -38,10 +38,10 @@ class BlueskyClientSession:
     def _migrate(self) -> None:
         """Run any required database migration steps."""
 
-    def connect(self, db_file: str) -> None:
+    def connect(self, session_file: str) -> None:
         """Returns a connection to the feed database."""
-        if Path(db_file).exists():
-            self.connection = sqlite3.connect(db_file)
+        if Path(session_file).exists():
+            self.connection = sqlite3.connect(session_file)
 
     def retrieve(self, username: str) -> str | None:
         """Retrieve stored Bluesky client session token."""
@@ -80,34 +80,48 @@ class BlueskyClient:
     """Client for Bluesky."""
 
     def __init__(
-        self, api_url: str, username: str, app_password: str, db_file: str
+        self,
+        api_url: str,
+        username: str,
+        app_password: str,
+        session_file: str,
+        use_session_token: bool,
     ) -> None:
         self._api_url: str = api_url
-        self._db_file: str = db_file
+        self._session_file: str = session_file
         self._username: str = username
+        self._use_session_token: bool = use_session_token
 
         if api_url and username and app_password:
             self.login(
                 api_url=api_url,
                 username=username,
                 app_password=app_password,
-                db_file=db_file,
+                session_file=session_file,
+                use_session_token=use_session_token,
             )
 
     def login(
-        self, api_url: str, username: str, app_password: str, db_file: str
+        self,
+        api_url: str,
+        username: str,
+        app_password: str,
+        session_file: str,
+        use_session_token: bool,
     ) -> None:
         """Log into Bluesky."""
         self._api_url: str = api_url
-        self._db_file: str = db_file
+        self._session_file: str = session_file
         self._username = username
-
-        _session = BlueskyClientSession(db_file=db_file)
-        _session_token: str | None = _session.retrieve(username=username)
+        self._use_session_token: bool = use_session_token
 
         self._client = Client(base_url=api_url)
-        if _session_token:
-            self._client.login(session_string=_session_token)
+        if use_session_token:
+            _session = BlueskyClientSession(session_file=session_file)
+            _session_token: str | None = _session.retrieve(username=username)
+
+            if _session_token:
+                self._client.login(session_string=_session_token)
         else:
             self._client.login(login=username, password=app_password)
 
@@ -123,6 +137,7 @@ class BlueskyClient:
 
     def save_session(self) -> None:
         """Save session token for current user."""
-        _session = BlueskyClientSession(db_file=self._db_file)
-        _session_token = self._client.export_session_string()
-        _session.save(username=self._username, session_token=_session_token)
+        if self._use_session_token:
+            _session = BlueskyClientSession(session_file=self._session_file)
+            _session_token = self._client.export_session_string()
+            _session.save(username=self._username, session_token=_session_token)

@@ -23,6 +23,10 @@ class BlueskySettings(NamedTuple):
     "Bluesky account username, excluding the @ prefix."
     app_password: str
     "Bluesky account app password."
+    session_file: str
+    "Path to the SQLite3 database for storing Bluesky session tokens."
+    use_session_token: bool
+    "Use stored session token instead of app password."
     api_url: str
     "Bluesky API URL."
     template_path: str
@@ -86,8 +90,6 @@ class AppSettings(NamedTuple):
     "Path to the SQLite database for storing podcast episode information."
     database_clean_days: int = 90
     "Clean database entries that are older than the given number of days."
-    bluesky_session_file: str = "dbfiles/bluesky_sessions.sqlite3"
-    "Path to the SQLite3 database for storing Bluesky session tokens."
     log_file: str = "logs/app.log"
     "Path to the file to be used for logging."
     user_agent: str = _DEFAULT_USER_AGENT
@@ -118,6 +120,12 @@ class AppConfig:
             enabled=_enabled,
             username=_username.strip().lstrip("@"),
             app_password=_app_password.strip(),
+            session_file=str(
+                bluesky_settings.get(
+                    "bluesky_session_file", "dbfiles/bluesky_session.sqlite3"
+                )
+            ).strip(),
+            use_session_token=bool(bluesky_settings.get("use_session_token", False)),
             api_url=bluesky_settings.get("api_url", "https://bsky.social").strip(),
             template_path=bluesky_settings.get("template_path", "templates").strip(),
             template_file=bluesky_settings.get(
@@ -255,11 +263,6 @@ class AppConfig:
                 _app_settings.get("database_file", "dbfiles/feed_info.sqlite3")
             ).strip(),
             database_clean_days=int(_app_settings.get("database_clean_days", 90)),
-            bluesky_session_file=str(
-                _app_settings.get(
-                    "bluesky_session_file", "dbfiles/bluesky_session.sqlite3"
-                )
-            ).strip(),
             log_file=str(_app_settings.get("log_file", "logs/app.log")).strip(),
             user_agent=str(
                 _app_settings.get("user_agent", _DEFAULT_USER_AGENT)

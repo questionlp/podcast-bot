@@ -3,3 +3,4 @@ max-args = 10
 max-branches = 20
 max-locals = 30
 max-nested-blocks = 10
+max-statements = 75

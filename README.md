@@ -75,6 +75,7 @@ The `feeds.json` file contains application configuration settings for the applic
 | -------- | ----------- |
 | database_file | Location of the SQLite database file that will be used to store episodes that the application has already been processed. (Default: `dbfiles/feed_info.sqlite3`) |
 | database_clean_days | Number of days to keep records in the SQLite database. Used by the clean-up function to remove older entries. This value should be greater than the value set for `recent_days`. (Default: `90`) |
+| bluesky_session_file | Location of the SQLite database file used to store Bluesky session tokens. (Default: `dbfiles/bluesky_session.sqlite3`) |
 | log_file | Path for the log file the application used for recording event logs. (Default: `logs/app.log`) |
 | user_agent | User Agent string to provide when retrieving a podcast feed. (Default: `Mozilla/5.0 (X11; Linux x86_64; rv:132.0) Gecko/20100101 Firefox/132.0`). |
 | feeds | List of [Feed configuration keys](#feed-configuration-keys) containing podcast feeds and associated settings. |
@@ -100,6 +101,7 @@ The `feeds.json` file contains application configuration settings for the applic
 | enabled | Enable posting new episodes to Bluesky. (Default: `true`) |
 | username | Bluesky account username, excluding the leading `@`. |
 | app_password | App password for the Bluesky account. |
+| use_session_token | Enable the use of Bluesky session token to connect to Bluesky. (Default: `false`) |
 | api_url | The base API URL for Bluesky. (Default: `https://bsky.social`) |
 | template_file | Path for the Jinja2 template file that will be used to format the post. (Default: `templates/post-bluesky.txt.jinja`) |
 | max_description_length | Maximum length (in characters) of the podcast episode description to be included in the post. (Default: `150`) |
