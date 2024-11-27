@@ -10,6 +10,8 @@ from argparse import Namespace
 from pprint import pformat
 from typing import Any
 
+from atproto_client.exceptions import RequestException
+
 import modules.command
 from modules.bluesky_client import BlueskyClient
 from modules.database import FeedDatabase
@@ -22,7 +24,7 @@ from modules.mastodon_client import MastodonClient
 from modules.podcast_feed import PodcastFeed
 from modules.settings import _DEFAULT_USER_AGENT, AppConfig, AppSettings, FeedSettings
 
-APP_VERSION: str = "1.0.1"
+APP_VERSION: str = "1.1.0"
 logger: logging.Logger = logging.getLogger(__name__)
 
 
@@ -134,10 +136,10 @@ def process_feeds(
     """Process podcast feeds and post new episodes."""
     for feed in feeds:
 
-        logger.debug("Podcast Name: %s", feed.name)
+        logger.info("Podcast Name: %s", feed.name)
 
         if not feed.enabled:
-            logger.debug("Feed disabled. Skipping.")
+            logger.info("Feed disabled. Skipping.")
             continue
 
         # Pull episodes from the configured podcast feed
@@ -177,37 +179,6 @@ def process_feeds(
             user_agent=user_agent,
         )
 
-        bluesky_client: BlueskyClient | bool = False
-        if feed.bluesky_settings.enabled and not dry_run:
-            # Setup Bluesky Client
-            logger.debug("Bluesky API URL: %s", feed.bluesky_settings.api_url)
-            bluesky_client = BlueskyClient(
-                api_url=feed.bluesky_settings.api_url,
-                username=feed.bluesky_settings.username,
-                app_password=feed.bluesky_settings.app_password,
-            )
-        elif feed.bluesky_settings.enabled and dry_run:
-            bluesky_client = True
-
-        mastodon_client: MastodonClient | bool = False
-        if feed.mastodon_settings.enabled and not dry_run:
-            # Connect to Mastodon Client
-            logger.debug("Mastodon API URL: %s", feed.mastodon_settings.api_url)
-            if feed.mastodon_settings.use_oauth:
-                mastodon_client = MastodonClient(
-                    api_url=feed.mastodon_settings.api_url,
-                    client_secret=None,
-                    access_token=feed.mastodon_settings.secrets_file,
-                )
-            else:
-                mastodon_client = MastodonClient(
-                    api_url=feed.mastodon_settings.api_url,
-                    client_secret=feed.mastodon_settings.client_secret,
-                    access_token=feed.mastodon_settings.access_token,
-                )
-        elif feed.mastodon_settings.enabled and dry_run:
-            mastodon_client = True
-
         if episodes:
             new_episodes: list[dict[str, Any]] = retrieve_new_episodes(
                 feed_episodes=episodes,
@@ -221,7 +192,49 @@ def process_feeds(
 
             logger.debug("New Episodes:\n%s", pformat(new_episodes))
 
+            if not new_episodes:
+                logger.info("No new episodes.")
+                continue
+
+            bluesky_client: BlueskyClient | bool = False
+            if feed.bluesky_settings.enabled and not dry_run:
+                try:
+                    # Setup Bluesky Client
+                    logger.debug("Bluesky API URL: %s", feed.bluesky_settings.api_url)
+                    bluesky_client = BlueskyClient(
+                        api_url=feed.bluesky_settings.api_url,
+                        username=feed.bluesky_settings.username,
+                        app_password=feed.bluesky_settings.app_password,
+                        session_file=feed.bluesky_settings.session_file,
+                        use_session_token=feed.bluesky_settings.use_session_token,
+                    )
+                except RequestException as at_except:
+                    logger.info("Unable to connect to Bluesky:\n%s", at_except)
+                    bluesky_client = False
+            elif feed.bluesky_settings.enabled and dry_run:
+                bluesky_client = True
+
+            mastodon_client: MastodonClient | bool = False
+            if feed.mastodon_settings.enabled and not dry_run:
+                # Connect to Mastodon Client
+                logger.debug("Mastodon API URL: %s", feed.mastodon_settings.api_url)
+                if feed.mastodon_settings.use_oauth:
+                    mastodon_client = MastodonClient(
+                        api_url=feed.mastodon_settings.api_url,
+                        client_secret=None,
+                        access_token=feed.mastodon_settings.secrets_file,
+                    )
+                else:
+                    mastodon_client = MastodonClient(
+                        api_url=feed.mastodon_settings.api_url,
+                        client_secret=feed.mastodon_settings.client_secret,
+                        access_token=feed.mastodon_settings.access_token,
+                    )
+            elif feed.mastodon_settings.enabled and dry_run:
+                mastodon_client = True
+
             for episode in new_episodes:
+                logger.debug("Episode Details: %s", episode)
                 if bluesky_client and feed.bluesky_settings.enabled:
                     post_text: str = format_bluesky_post(
                         podcast_name=feed.name,
@@ -232,8 +245,10 @@ def process_feeds(
                     )
 
                     if not dry_run:
-                        logger.info("Posting %s.", episode)
+                        logger.info("Bluesky: Posting %s", post_text)
                         bluesky_client.post(body=post_text, episode_url=episode["url"])
+                        if feed.bluesky_settings.use_session_token:
+                            bluesky_client.save_session()
 
                 if mastodon_client and feed.mastodon_settings.enabled:
                     post_text: str = format_mastodon_post(
@@ -245,7 +260,7 @@ def process_feeds(
                     )
 
                     if not dry_run:
-                        logger.info("Posting %s.", episode)
+                        logger.info("Mastodon: Posting %s", post_text)
                         mastodon_client.post(content=post_text)
 
         if not dry_run:
@@ -259,7 +274,7 @@ def main() -> None:
     arguments: Namespace = modules.command.parse()
 
     if arguments.version:
-        print(f"Version {APP_VERSION}")
+        print(f"podcast-bot {APP_VERSION}")
         return
 
     dry_run: bool = arguments.dry_run
@@ -275,9 +290,9 @@ def main() -> None:
     # the file does not exist
     feed_database: FeedDatabase = FeedDatabase(app_settings.database_file)
 
-    logger.debug("Starting")
+    logger.info("Starting")
     if dry_run:
-        logger.debug("Running in dry mode.")
+        logger.info("Running in dry mode.")
 
     process_feeds(
         feeds=app_settings.feeds,
@@ -286,6 +301,7 @@ def main() -> None:
         dry_run=dry_run,
     )
 
+    logger.info("Finishing.")
     if not dry_run and not arguments.skip_clean:
         feed_database.clean(days_to_keep=app_settings.database_clean_days)
 

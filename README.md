@@ -32,7 +32,7 @@ Once you submit the new application form, a client key, client secret and an acc
 
 ## Bluesky
 
-For Bluesky accounts, the application currently only supports using app passwords.
+For Bluesky accounts, the application currently only supports using app passwords along with generated session strings/tokens. The support for session strings is in early experimental stages and it is **not** recommeded for use in production.
 
 ### App Password
 
@@ -100,6 +100,8 @@ The `feeds.json` file contains application configuration settings for the applic
 | enabled | Enable posting new episodes to Bluesky. (Default: `true`) |
 | username | Bluesky account username, excluding the leading `@`. |
 | app_password | App password for the Bluesky account. |
+| session_file | Location of the SQLite database file used to store Bluesky session tokens. (Default: `dbfiles/bluesky_session.sqlite3`) |
+| use_session_token | Enable the use of Bluesky session token to connect to Bluesky. (Default: `false`) |
 | api_url | The base API URL for Bluesky. (Default: `https://bsky.social`) |
 | template_file | Path for the Jinja2 template file that will be used to format the post. (Default: `templates/post-bluesky.txt.jinja`) |
 | max_description_length | Maximum length (in characters) of the podcast episode description to be included in the post. (Default: `150`) |

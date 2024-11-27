@@ -62,6 +62,7 @@ def format_bluesky_post(
         podcast_name=podcast_name,
         title=title,
         description=formatted_description,
+        total_time=episode["total_time"],
         url=episode["url"],
     )
 
@@ -108,6 +109,7 @@ def format_mastodon_post(
         podcast_name=podcast_name,
         title=title,
         description=formatted_description,
+        total_time=episode["total_time"],
         url=episode["url"],
     )
 

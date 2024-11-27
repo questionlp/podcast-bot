@@ -42,7 +42,9 @@ class FeedDatabase:
 
     def _migrate(self) -> None:
         """Run any required database migration steps."""
-        cursor = self.connection.execute(
+        # Add a enclosure_url column to the episodes table if the column
+        # does not exist.
+        cursor: Cursor = self.connection.execute(
             "SELECT name FROM pragma_table_info('episodes') WHERE name = 'enclosure_url'"
         )
         result = cursor.fetchone()
@@ -51,7 +53,9 @@ class FeedDatabase:
             self.connection.execute("ALTER TABLE episodes ADD COLUMN enclosure_url str")
             self.connection.commit()
 
-        cursor = self.connection.execute(
+        # Add the podcast_name column to the episodes table if the
+        # column does not exist.
+        cursor: Cursor = self.connection.execute(
             "SELECT name FROM pragma_table_info('episodes') WHERE name = 'podcast_name'"
         )
         result = cursor.fetchone()
@@ -60,7 +64,9 @@ class FeedDatabase:
             self.connection.execute("ALTER TABLE episodes ADD COLUMN podcast_name str")
             self.connection.commit()
 
-        cursor = self.connection.execute(
+        # Create the feeds table for storing podcast feed last modified
+        # timestamp if the table does not exist.
+        cursor: Cursor = self.connection.execute(
             "SELECT EXISTS (SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'feeds')"
         )
         result = cursor.fetchone()
@@ -69,6 +75,21 @@ class FeedDatabase:
         if result and result[0] == 0:
             self.connection.execute(
                 "CREATE TABLE feeds(podcast_name str PRIMARY KEY, last_modified str)"
+            )
+            self.connection.commit()
+
+        # Create the bluesky_sessions table for storing session tokens if
+        # the table does not exist.
+        cursor: Cursor = self.connection.execute(
+            "SELECT EXISTS (SELECT name from sqlite_master WHERE type = 'table' AND "
+            "name = 'bluesky_sessions')"
+        )
+        result = cursor.fetchone()
+        cursor.close()
+
+        if result and result[0] == 0:
+            self.connection.execute(
+                "CREATE TABLE bluesky_sessions(username str PRIMARY KEY, session_token str)"
             )
             self.connection.commit()
 

@@ -23,6 +23,10 @@ class BlueskySettings(NamedTuple):
     "Bluesky account username, excluding the @ prefix."
     app_password: str
     "Bluesky account app password."
+    session_file: str
+    "Path to the SQLite3 database for storing Bluesky session tokens."
+    use_session_token: bool
+    "Use stored session token instead of app password."
     api_url: str
     "Bluesky API URL."
     template_path: str
@@ -116,6 +120,12 @@ class AppConfig:
             enabled=_enabled,
             username=_username.strip().lstrip("@"),
             app_password=_app_password.strip(),
+            session_file=str(
+                bluesky_settings.get(
+                    "bluesky_session_file", "dbfiles/bluesky_session.sqlite3"
+                )
+            ).strip(),
+            use_session_token=bool(bluesky_settings.get("use_session_token", False)),
             api_url=bluesky_settings.get("api_url", "https://bsky.social").strip(),
             template_path=bluesky_settings.get("template_path", "templates").strip(),
             template_file=bluesky_settings.get(
