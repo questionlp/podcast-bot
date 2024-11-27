@@ -24,7 +24,7 @@ from modules.mastodon_client import MastodonClient
 from modules.podcast_feed import PodcastFeed
 from modules.settings import _DEFAULT_USER_AGENT, AppConfig, AppSettings, FeedSettings
 
-APP_VERSION: str = "1.1.0-beta"
+APP_VERSION: str = "1.1.0"
 logger: logging.Logger = logging.getLogger(__name__)
 
 
