@@ -234,6 +234,7 @@ def process_feeds(
                 mastodon_client = True
 
             for episode in new_episodes:
+                logger.debug("Episode Details: %s", episode)
                 if bluesky_client and feed.bluesky_settings.enabled:
                     post_text: str = format_bluesky_post(
                         podcast_name=feed.name,
@@ -244,7 +245,7 @@ def process_feeds(
                     )
 
                     if not dry_run:
-                        logger.info("Bluesky: Posting %s", episode)
+                        logger.info("Bluesky: Posting %s", post_text)
                         bluesky_client.post(body=post_text, episode_url=episode["url"])
                         if feed.bluesky_settings.use_session_token:
                             bluesky_client.save_session()
@@ -259,7 +260,7 @@ def process_feeds(
                     )
 
                     if not dry_run:
-                        logger.info("Mastodon: Posting %s", episode)
+                        logger.info("Mastodon: Posting %s", post_text)
                         mastodon_client.post(content=post_text)
 
         if not dry_run:
