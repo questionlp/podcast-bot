@@ -4,6 +4,7 @@
 #
 # vim: set noai syntax=python ts=4 sw=4:
 """Post Formatting Module."""
+import unicodedata
 from datetime import timedelta
 from string import Formatter
 from typing import Any
@@ -51,6 +52,9 @@ def format_bluesky_post(
     # Fix issue with HTML2Text causing + to be rendered as \+
     formatted_description = formatted_description.replace(r"\+", "+")
 
+    # Normalize formatted description
+    formatted_description = unicodedata.normalize("NFKC", formatted_description)
+
     if len(formatted_description) > max_description_length:
         formatted_description = (
             f"{formatted_description[:max_description_length].strip()}...\n"
@@ -97,6 +101,9 @@ def format_mastodon_post(
 
     # Fix issue with HTML2Text causing + to be rendered as \+
     formatted_description = formatted_description.replace(r"\+", "+")
+
+    # Normalize formatted description
+    formatted_description = unicodedata.normalize("NFKC", formatted_description)
 
     if len(formatted_description) > max_description_length:
         formatted_description = (
