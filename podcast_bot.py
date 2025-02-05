@@ -1,9 +1,10 @@
-# Copyright (c) 2022-2024 Linh Pham
+# Copyright (c) 2022-2025 Linh Pham
 # podcast-bot is released under the terms of the MIT License
 # SPDX-License-Identifier: MIT
 #
 # vim: set noai syntax=python ts=4 sw=4:
 """Podcast Feed Bot."""
+
 import datetime
 import logging
 from argparse import Namespace
@@ -24,7 +25,7 @@ from modules.mastodon_client import MastodonClient
 from modules.podcast_feed import PodcastFeed
 from modules.settings import _DEFAULT_USER_AGENT, AppConfig, AppSettings, FeedSettings
 
-APP_VERSION: str = "1.1.2"
+APP_VERSION: str = "1.1.3"
 logger: logging.Logger = logging.getLogger(__name__)
 
 
@@ -135,7 +136,6 @@ def process_feeds(
 ):
     """Process podcast feeds and post new episodes."""
     for feed in feeds:
-
         logger.info("Podcast Name: %s", feed.name)
 
         if not feed.enabled:

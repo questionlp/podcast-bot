@@ -1,9 +1,10 @@
-# Copyright (c) 2024 Linh Pham
+# Copyright (c) 2022-2025 Linh Pham
 # podcast-bot is released under the terms of the MIT License
 # SPDX-License-Identifier: MIT
 #
 # vim: set noai syntax=python ts=4 sw=4:
 """Post Formatting Module."""
+
 import unicodedata
 from datetime import timedelta
 from string import Formatter

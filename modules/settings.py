@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2024 Linh Pham
+# Copyright (c) 2022-2025 Linh Pham
 # podcast-bot is released under the terms of the MIT License
 # SPDX-License-Identifier: MIT
 #
@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import NamedTuple, Any
 
 _DEFAULT_USER_AGENT = (
-    "Mozilla/5.0 (X11; Linux x86_64; rv:132.0) Gecko/20100101 Firefox/132.0"
+    "Mozilla/5.0 (X11; Linux x86_64; rv:132.0) Gecko/20100101 Firefox/134.0"
 )
 
 
