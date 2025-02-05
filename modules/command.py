@@ -1,16 +1,20 @@
-# Copyright (c) 2022-2024 Linh Pham
+# Copyright (c) 2022-2025 Linh Pham
 # podcast-bot is released under the terms of the MIT License
 # SPDX-License-Identifier: MIT
 #
 # vim: set noai syntax=python ts=4 sw=4:
 """Application Command-Line Parsing Module."""
+
 from argparse import ArgumentParser, Namespace
 
 
 def parse() -> Namespace:
     """Parse command-line arguments, options and flags using ArgumentParser."""
     parser: ArgumentParser = ArgumentParser(
-        description="Fetch items from a podcast feed and publish new items to Mastodon."
+        description=(
+            "Fetch items from a podcast feed and publish new items "
+            "to Mastodon and/or Bluesky."
+        )
     )
     parser.add_argument(
         "-s",
