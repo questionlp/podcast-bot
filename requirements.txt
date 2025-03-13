@@ -2,6 +2,6 @@ atproto==0.0.55
 Mastodon.py==1.8.1
 podcastparser==0.6.10
 html2text==2024.2.26
-Jinja2==3.1.5
+Jinja2==3.1.6
 requests==2.32.3
 python-dateutil==2.9.0.post0
