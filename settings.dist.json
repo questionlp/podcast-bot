@@ -21,6 +21,7 @@
                 "api_url": "https://bsky.social",
                 "template_path": "templates",
                 "template_file": "post-bluesky.txt.jinja",
+                "max_title_length": 100,
                 "max_description_length": 150
             },
             "mastodon_settings": {
@@ -32,6 +33,7 @@
                 "access_token": "",
                 "template_path": "templates",
                 "template_file": "post-mastodon.txt.jinja",
+                "max_title_length": 100,
                 "max_description_length": 275
             }
         }

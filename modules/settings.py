@@ -33,6 +33,8 @@ class BlueskySettings(NamedTuple):
     "Path to the directory containing the Jinja template file."
     template_file: str
     "Name of the Jinja template file."
+    max_title_length: int
+    "Maximum podcast title length."
     max_description_length: int
     "Maximum podcast episode description length."
 
@@ -56,6 +58,8 @@ class MastodonSettings(NamedTuple):
     "Path to the directory containing the Jinja template file."
     template_file: str
     "Name of the Jinja template file."
+    max_title_length: int
+    "Maximum podcast title length."
     max_description_length: int
     "Maximum podcast episode description length."
 
@@ -131,6 +135,7 @@ class AppConfig:
             template_file=bluesky_settings.get(
                 "template_file", "post-bluesky.txt.jinja"
             ).strip(),
+            max_title_length=int(bluesky_settings.get("max_title_length", 100)),
             max_description_length=int(
                 bluesky_settings.get("max_description_length", 150)
             ),
@@ -176,6 +181,7 @@ class AppConfig:
             template_file=mastodon_settings.get(
                 "template_file", "post-mastodon.txt.jinja"
             ).strip(),
+            max_title_length=int(mastodon_settings.get("max_title_length", 100)),
             max_description_length=int(
                 mastodon_settings.get("max_description_length", 275)
             ),
