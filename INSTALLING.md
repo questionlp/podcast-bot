@@ -63,6 +63,7 @@ Due to the experimental nature of the session token feature in the application, 
 | use_session_token | Enable the use of Bluesky session token to connect to Bluesky. (Default: `false`) |
 | api_url | The base API URL for Bluesky. (Default: `https://bsky.social`) |
 | template_file | Path for the Jinja2 template file that will be used to format the post. (Default: `templates/post-bluesky.txt.jinja`) |
+| max_title_length | Maximum length (in characters) of the podcast episode title to be included in the post. (Default: `100`) |
 | max_description_length | Maximum length (in characters) of the podcast episode description to be included in the post. (Default: `150`) |
 
 ### Mastodon Configuration Settings
@@ -90,6 +91,7 @@ If you do not want the application to publish to Mastodon, you will need to set 
 | client_secret | Mastodon API client secret used for authentication. Not required when using OAuth authentication. |
 | access_token | Mastodon API access token used for authentiication. Not required when using OAuth authentication. |
 | template_file | Path for the Jinja2 template file that will be used to format the post. (Default: `templates/post-mastodon.txt.jinja`) |
+| max_title_length | Maximum length (in characters) of the podcast episode title to be included in the post. (Default: `100`) |
 | max_description_length | Maximum length (in characters) of the podcast episode description to be included in the post. (Default: `275`) |
 
 ## Running the Application

@@ -25,7 +25,7 @@ from modules.mastodon_client import MastodonClient
 from modules.podcast_feed import PodcastFeed
 from modules.settings import _DEFAULT_USER_AGENT, AppConfig, AppSettings, FeedSettings
 
-APP_VERSION: str = "1.1.4"
+APP_VERSION: str = "1.2.0"
 logger: logging.Logger = logging.getLogger(__name__)
 
 
@@ -239,10 +239,14 @@ def process_feeds(
                     post_text: str = format_bluesky_post(
                         podcast_name=feed.name,
                         episode=episode,
+                        max_title_length=feed.bluesky_settings.max_title_length,
                         max_description_length=feed.bluesky_settings.max_description_length,
                         template_path=feed.bluesky_settings.template_path,
                         template_file=feed.bluesky_settings.template_file,
                     )
+
+                    if dry_run:
+                        logger.debug("Bluesky Post Text: %s", post_text)
 
                     if not dry_run:
                         logger.info("Bluesky: Posting %s", post_text)
@@ -254,10 +258,14 @@ def process_feeds(
                     post_text: str = format_mastodon_post(
                         podcast_name=feed.name,
                         episode=episode,
+                        max_title_length=feed.mastodon_settings.max_title_length,
                         max_description_length=feed.mastodon_settings.max_description_length,
                         template_path=feed.mastodon_settings.template_path,
                         template_file=feed.mastodon_settings.template_file,
                     )
+
+                    if dry_run:
+                        logger.debug("Mastodon Post Text: %s", post_text)
 
                     if not dry_run:
                         logger.info("Mastodon: Posting %s", post_text)

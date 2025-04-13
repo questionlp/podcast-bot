@@ -25,6 +25,7 @@ def unsmart_quotes(text: str) -> str:
 def format_bluesky_post(
     episode: dict[str, Any],
     podcast_name: str,
+    max_title_length: int,
     max_description_length: int,
     template_path: str,
     template_file: str,
@@ -47,6 +48,9 @@ def format_bluesky_post(
 
     # Replace "smart" quotes with regular quotes
     title: str = unsmart_quotes(text=episode["title"])
+    if len(title) > max_title_length:
+        title = f"{title[:max_title_length].strip()}..."
+
     description: str = unsmart_quotes(text=episode["description"])
     formatted_description: str = formatter.handle(description)
 
@@ -75,6 +79,7 @@ def format_bluesky_post(
 def format_mastodon_post(
     episode: dict[str, Any],
     podcast_name: str,
+    max_title_length: int,
     max_description_length: int,
     template_path: str,
     template_file: str,
@@ -97,6 +102,9 @@ def format_mastodon_post(
 
     # Replace "smart" quotes with regular quotes
     title: str = unsmart_quotes(text=episode["title"])
+    if len(title) > max_title_length:
+        title = f"{title[:max_title_length].strip()}..."
+
     description: str = unsmart_quotes(text=episode["description"])
     formatted_description: str = formatter.handle(description)
 
