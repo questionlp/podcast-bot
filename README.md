@@ -10,7 +10,7 @@ Migrating from either application will require migrating the former feeds JSON c
 
 ## Requirements
 
-This project requires Python 3.10 or higher.
+Prior to version 1.3.0, Python 3.10 through 3.13 is supported. Starting with version 1.3.0, Python 3.10 through 3.14 is supported.
 
 In addition, you will need authentication information for an account on either Mastodon or Bluesky in order to publish posts.
 
@@ -28,7 +28,11 @@ For code linting and formatting, the project makes use of Ruff and Black.
 
 ## Code of Conduct
 
-This project follows version 2.1 of the [Contributor Covenant's](https://www.contributor-covenant.org) Code of Conduct.
+This project follows the code of conduct pledge defined by the [Contributor Covenant 3.0 Code of Conduct](CODE_OF_CONDUCT.md).
+
+## AI Generated Code
+
+Please note that this project does not accept pull requests or bugfixes that include code that has been partially or wholly generated using AI.
 
 ## License
 

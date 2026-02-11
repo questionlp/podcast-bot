@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2025 Linh Pham
+# Copyright (c) 2022-2026 Linh Pham
 # podcast-bot is released under the terms of the MIT License
 # SPDX-License-Identifier: MIT
 #
@@ -25,7 +25,7 @@ from modules.mastodon_client import MastodonClient
 from modules.podcast_feed import PodcastFeed
 from modules.settings import _DEFAULT_USER_AGENT, AppConfig, AppSettings, FeedSettings
 
-APP_VERSION: str = "1.2.1"
+APP_VERSION: str = "1.3.0"
 logger: logging.Logger = logging.getLogger(__name__)
 
 

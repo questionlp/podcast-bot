@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2025 Linh Pham
+# Copyright (c) 2022-2026 Linh Pham
 # podcast-bot is released under the terms of the MIT License
 # SPDX-License-Identifier: MIT
 #
