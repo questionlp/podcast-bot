@@ -1,10 +1,10 @@
-pytest==8.3.3
-ruff==0.11.9
+pytest==9.0.2
+ruff==0.14.14
 
-atproto==0.0.55
-Mastodon.py==1.8.1
-podcastparser==0.6.10
-html2text==2024.2.26
+atproto==0.0.64
+html2text==2025.4.15
 Jinja2==3.1.6
-requests==2.32.4
+Mastodon.py==2.1.4
+podcastparser==0.6.11
 python-dateutil==2.9.0.post0
+requests==2.32.5
