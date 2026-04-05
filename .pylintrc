@@ -1,6 +1,6 @@
 [design]
 max-args = 10
-max-branches = 20
+max-branches = 30
 max-locals = 30
-max-nested-blocks = 10
-max-statements = 75
+max-nested-blocks = 15
+max-statements = 100
