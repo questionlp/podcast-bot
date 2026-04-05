@@ -2,7 +2,7 @@
 
 podcast-bot is a Python application that parses a podcast RSS/Atom feed and publishes new episodes to an account on either Bluesky or Mastodon, or both.
 
-**Note:** The primary version of this repository now resides on Codeberg as [podcast-bot](https://codeberg.org/qlp/podcast-bot). The GitHub repository now acts as a mirror of the Codeberg repository.
+**Note:** The authoritative version of this repository now resides on Codeberg as [podcast-bot](https://codeberg.org/qlp/podcast-bot) and mirrors changes to GitHub. Going forward, issues and pull requests should be created on Codeberg rather than GitHub.
 
 ## Notes Regarding bluesky-podcast-bot and mastodon-podcast-bot
 
